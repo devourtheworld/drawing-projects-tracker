@@ -1,14 +1,8 @@
 [
     {
-        "name": "test",
-        "time_spent": 999949
-    },
-    {
-        "name": "test 2",
-        "time_spent": 23
-    },
-    {
-        "name": "test 3",
-        "time_spent": 12
+        "name": "312",
+        "time_spent": 0,
+        "created_at": "22:03 31.03.25",
+        "last_tracked": "22:03 31.03.25"
     }
 ]
