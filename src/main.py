@@ -12,8 +12,25 @@ class DrawingProjectTrackerApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Drawing Projects Tracker")
+        
+        # Set fixed window size
+        self.root.geometry("500x400")  # Width x Height
+        # self.root.resizable(False, False)  # Disable resizing
+
+        self.current_file = None  # Track the currently loaded file
         self.projects = self.load_projects()
         self.tracking_projects = {}  # Dictionary to track multiple projects and their start times
+
+        # Menu Bar
+        menu_bar = tk.Menu(root)
+        file_menu = tk.Menu(menu_bar, tearoff=0)
+        file_menu.add_command(label="Load Custom File", command=self.load_custom_file)
+        menu_bar.add_cascade(label="File", menu=file_menu)
+        root.config(menu=menu_bar)
+
+        # Project Counter Label
+        self.project_counter_label = tk.Label(root, text=f"Total Projects: {len(self.projects)}", font=("Arial", 12))
+        self.project_counter_label.pack(pady=5)
 
         # UI Elements
         self.project_frame = tk.Frame(root)
@@ -25,27 +42,56 @@ class DrawingProjectTrackerApp:
         self.refresh_project_list()
 
     def load_projects(self):
-        if os.path.exists(DATA_FILE):
-            with open(DATA_FILE, "r") as file:
-                projects = json.load(file)
-                # Add default values for missing fields
-                for project in projects:
-                    if "created_at" not in project:
-                        project["created_at"] = "Unknown"
-                    if "last_tracked" not in project:
-                        project["last_tracked"] = "Never"
-                return projects
-        return []
+        # Load the configuration file
+        config_path = os.path.join(os.path.dirname(__file__), "config.json")
+        if os.path.exists(config_path):
+            with open(config_path, "r") as config_file:
+                config = json.load(config_file)
+                custom_file = config.get("last_loaded_file")
+        else:
+            custom_file = None
+
+        # Try to load the custom file if it exists
+        if custom_file and os.path.exists(custom_file):
+            self.current_file = custom_file
+        else:
+            # Fall back to the default file
+            self.current_file = DATA_FILE
+
+        # Load the projects from the selected file
+        if os.path.exists(self.current_file):
+            with open(self.current_file, "r") as file:
+                try:
+                    projects = json.load(file)
+                    # Add default values for missing fields
+                    for project in projects:
+                        if "created_at" not in project:
+                            project["created_at"] = "Unknown"
+                        if "last_tracked" not in project:
+                            project["last_tracked"] = "Never"
+                    return projects
+                except json.JSONDecodeError:
+                    messagebox.showerror("Error", "Invalid JSON format in the file.")
+                    return []
+        else:
+            messagebox.showerror("Error", f"File not found: {self.current_file}")
+            return []
 
     def save_projects(self):
-        with open(DATA_FILE, "w") as file:
-            json.dump(self.projects, file, indent=4)
-        self.refresh_project_list()  # Update the UI whenever the JSON file is saved
+        if self.current_file:
+            with open(self.current_file, "w") as file:
+                json.dump(self.projects, file, indent=4)
+            self.refresh_project_list()  # Update the UI whenever the JSON file is saved
+        else:
+            messagebox.showerror("Error", "No file selected to save projects.")
 
     def refresh_project_list(self):
         # Clear the frame
         for widget in self.project_frame.winfo_children():
             widget.destroy()
+
+        # Update the project counter
+        self.project_counter_label.config(text=f": {len(self.projects)}")
 
         # Add each project with Start/Pause, Edit, Delete, and Details buttons
         for project in self.projects:
@@ -229,6 +275,26 @@ class DrawingProjectTrackerApp:
         # Close button
         close_button = tk.Button(details_window, text="Close", command=details_window.destroy)
         close_button.pack(pady=10)
+
+    def load_custom_file(self):
+        from tkinter import filedialog
+
+        # Open a file dialog to select a JSON file
+        file_path = filedialog.askopenfilename(
+            title="Select a JSON File",
+            filetypes=(("JSON Files", "*.json"), ("All Files", "*.*"))
+        )
+
+        if file_path:
+            # Save the path to the configuration file
+            config_path = os.path.join(os.path.dirname(__file__), "config.json")
+            with open(config_path, "w") as config_file:
+                json.dump({"last_loaded_file": file_path}, config_file)
+
+            # Reload projects from the new file
+            self.projects = self.load_projects()
+            self.refresh_project_list()
+            messagebox.showinfo("Success", f"Loaded projects from: {file_path}")
 
 # Run the application
 if __name__ == "__main__":
