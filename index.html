@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time Tracker</title>
+    <link rel="stylesheet" href="src/styles/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1 id="project-title">Tracking</h1>
+        <p class="project-txt">: <span id="totalProjects">0</span> :</p>
+        <div id="projectList"></div>
+        <div class="project-controls">
+            <button id="addProjectButton" class="btn project-btn">Add New Project</button>
+            <div class="project-files-btn">
+                <button id="loadFileButton" class="btn project-btn">Load New File</button>
+                <button id="downloadDataButton" class="btn project-btn">Download Data</button>        
+            </div>
+        </div>
+    </div>
+    <script src="src/scripts/storage.js"></script>
+    <script src="src/scripts/app.js"></script>
+</body>
+</html>
